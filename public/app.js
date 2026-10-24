@@ -27,6 +27,11 @@ const STORE_KEY = "calorie-scorer:meals";
 const GOAL_KEY = "calorie-scorer:goal";
 const DEFAULT_GOAL = 1800;
 
+// ====== 后端地址配置 ======
+// 服务器就绪后把 USE_REMOTE 改成 true；开发时保持 false 走本地演示数据
+const USE_REMOTE = false;
+const API_BASE = "https://api.wenspock.com";
+
 /* ---------------- 演示数据（接后端后删除） ---------------- */
 /* 说明：analyze() 中接入 /api/analyze 后，下方便不再使用 */
 const DEMO = {
@@ -132,16 +137,16 @@ function levelOf(score) {
    识别（接口切换点）
    =========================================================== */
 async function analyze(imageBase64, mode) {
-  /* ===== 接入后端后启用以下代码，并删除下方演示返回 =====
-  const res = await fetch("/api/analyze", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ imageBase64, mode }),
-  });
-  const data = await res.json();
-  if (!res.ok) throw new Error(data.error || "识别失败");
-  return { ...data, isDemo: false };
-  ===================================================== */
+  if (USE_REMOTE) {
+    const res = await fetch(`${API_BASE}/api/analyze`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ imageBase64, mode }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || "识别失败");
+    return { ...data, isDemo: false };
+  }
 
   // 演示：未接后端时返回固定结果
   await new Promise((r) => setTimeout(r, 1400)); // 模拟识别耗时
