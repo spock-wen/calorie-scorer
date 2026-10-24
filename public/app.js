@@ -27,8 +27,8 @@ const STORE_KEY = "calorie-scorer:meals";
 const GOAL_KEY = "calorie-scorer:goal";
 const DEFAULT_GOAL = 1800;
 
-/* ---------------- 演示数据（接后端后删除） ---------------- */
-/* 说明：analyze() 中接入 /api/analyze 后，下方便不再使用 */
+/* ---------------- 演示数据（仅「看看示例结果」使用） ---------------- */
+/* 说明：真实识别走 /api/analyze，失败不会回退到这里 */
 const DEMO = {
   single: {
     mode: "single",
@@ -133,20 +133,35 @@ function levelOf(score) {
    识别（接口切换点）
    =========================================================== */
 async function analyze(imageBase64, mode) {
-  /* ===== 接入后端后启用以下代码，并删除下方演示返回 =====
-  const res = await fetch("/api/analyze", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ imageBase64, mode }),
-  });
-  const data = await res.json();
-  if (!res.ok) throw new Error(data.error || "识别失败");
-  return { ...data, isDemo: false };
-  ===================================================== */
+  let res;
+  try {
+    res = await fetch("/api/analyze", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ imageBase64, mode }),
+    });
+  } catch {
+    // 网络断 / 服务没起：明确报错，交给页面提示可重试
+    throw new Error("连不上识别服务，检查网络后再试一次");
+  }
 
-  // 演示：未接后端时返回固定结果
-  await new Promise((r) => setTimeout(r, 1400)); // 模拟识别耗时
-  return { ...structuredClone(DEMO[mode]), isDemo: true };
+  // 非 2xx：先尝试取服务端 error 文案，取不到就用通用提示
+  if (!res.ok) {
+    const errData = await res.json().catch(() => null);
+    throw new Error((errData && errData.error) || "识别失败，请重试");
+  }
+
+  let data;
+  try {
+    data = await res.json();
+  } catch {
+    throw new Error("识别结果看不懂（返回不是合法 JSON），请重试");
+  }
+  if (!Array.isArray(data.items) || data.items.length === 0) {
+    throw new Error("AI 没认出菜来，换个角度再拍一张试试");
+  }
+
+  return { ...data, isDemo: false };
 }
 
 /* ===========================================================
@@ -639,7 +654,9 @@ function init() {
     modeSwitch.dataset.mode = state.mode;
     $$(".mode", modeSwitch).forEach((m) => m.classList.toggle("is-active", m === btn));
     $("#dzHint").textContent = state.mode === "meal" ? "一张图 = 一整餐" : "一张图 = 一道菜";
+    syncModeAria();
   });
+  syncModeAria();
 
   // 文件选择
   $("#fileInput").addEventListener("change", (e) => {
@@ -665,6 +682,20 @@ function init() {
     const file = e.dataTransfer?.files?.[0];
     if (file) handleFile(file);
   });
+  // label 默认不能被键盘激活，补上 Enter / 空格
+  dz.addEventListener("keydown", (e) => {
+    if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      $("#fileInput").click();
+    }
+  });
+
+  // 模式按钮补 aria-selected，键盘 Tab 时状态可读
+  function syncModeAria() {
+    $$(".mode", modeSwitch).forEach((m) =>
+      m.setAttribute("aria-selected", String(m.dataset.mode === state.mode))
+    );
+  }
 
   // 示例
   $("#btnSample").addEventListener("click", runSample);
@@ -687,7 +718,8 @@ function init() {
   });
   $("#modal").addEventListener("keydown", (e) => {
     if (e.key === "Escape") closeModal();
-    if (e.key === "Enter") {
+    // 焦点在按钮上时交给按钮自己的 click，避免「回车=确定」误触发
+    if (e.key === "Enter" && e.target.tagName !== "BUTTON") {
       e.preventDefault();
       submitModal();
     }
