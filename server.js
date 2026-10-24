@@ -35,8 +35,8 @@ const SYSTEM_PROMPT = `你是「几分？·热量打分器」的图像营养估�
 }
 
 字段与数值范围：
-- items：1-20 个菜品对象；整餐时逐道列出画面中可辨认的菜。
-- name：中文菜名，简短（不超过 12 个字）。
+- items：1-20 个菜品对象；整餐（meal）时逐道列出画面中可辨认的菜；单菜（single）时只输出 1 项，把同盘的配菜、酱汁、装饰并入这一项。
+- name：中文菜名，不超过 12 个字。能确定是常见菜式时用通用名（如宫保鸡丁、红烧肉、玛格丽特披萨），不确定时用简洁的食材+做法描述，不要猜菜系。
 - grams：估算可食用份量，整数，0-2000 克。
 - kcal：该份量的总热量，整数，0-5000 千卡。
 - protein / fat / carb：该份量的蛋白质 / 脂肪 / 碳水化合物克数，整数，0-500 克。
@@ -49,7 +49,7 @@ const SYSTEM_PROMPT = `你是「几分？·热量打分器」的图像营养估�
 数字一律用数字类型，不要带单位或百分号。`;
 
 const USER_TEXT = {
-  single: "只识别画面里的主要菜品：识别这道菜，估算份量与营养，按要求输出 json。",
+  single: "只识别画面里最主要的菜品：只输出 1 项，把同盘的配菜与酱汁算进这一项，不要拆成多道菜；估算份量与营养，按要求输出 json。",
   meal: "识别这一餐里的所有菜，逐道列出，分别估算份量、热量与营养，按要求输出 json。",
 };
 
@@ -245,13 +245,18 @@ function normalizeResult(raw, mode) {
     throw new RetryableError("items missing");
   }
 
-  const items = raw.items
+  let items = raw.items
     .slice(0, MAX_ITEMS)
     .filter((item) => item && typeof item === "object" && !Array.isArray(item))
     .map(normalizeItem);
 
   if (items.length === 0) {
     throw new RetryableError("items empty");
+  }
+
+  // 单菜模式只保留热量最高的主项，避免配菜/酱汁被拆成多道菜
+  if (mode === "single" && items.length > 1) {
+    items = [items.reduce((a, b) => (b.kcal > a.kcal ? b : a))];
   }
 
   const fun = raw.fun && typeof raw.fun === "object" ? raw.fun : {};
