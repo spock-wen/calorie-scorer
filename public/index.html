@@ -37,6 +37,8 @@
     <main class="stage">
       <!-- ============ 视图一：首页 ============ -->
       <section class="view is-active" id="view-home">
+        <div class="home-grid">
+          <div class="home-main">
         <div class="hero">
           <h1 class="hero-title">
             今晚这顿饭<br /><span class="hl hl-yellow">几分</span
@@ -72,20 +74,36 @@
             <p class="dz-hint" id="dzHint">一张图 = 一道菜</p>
           </div>
         </label>
+          </div>
+          <!-- /home-main -->
 
-        <div class="row-actions">
-          <button class="btn btn-ghost" id="btnSample">看看示例结果</button>
-        </div>
+          <aside class="home-side">
+            <div class="panel howto">
+              <div class="panel-head"><h2>怎么玩</h2></div>
+              <ol class="howto-list">
+                <li><b>拍一张</b>菜品照片，或直接拖进来</li>
+                <li><b>AI 打分</b>热量、营养、趣味三维评分</li>
+                <li><b>可改可分</b>改克数实时重算，分数卡导出</li>
+              </ol>
+            </div>
 
-        <!-- 免责提示 -->
-        <div class="notice" role="note">
-          <span class="notice-ico">!</span>
-          <p>AI 估算结果仅供参考，可能不准，<b>可以手动修正</b>。</p>
+            <div class="row-actions">
+              <button class="btn btn-ghost" id="btnSample">看看示例结果</button>
+            </div>
+
+            <!-- 免责提示 -->
+            <div class="notice" role="note">
+              <span class="notice-ico">!</span>
+              <p>AI 估算结果仅供参考，可能不准，<b>可以手动修正</b>。</p>
+            </div>
+          </aside>
         </div>
       </section>
 
       <!-- ============ 视图二：结果页 ============ -->
       <section class="view" id="view-result">
+        <div class="result-grid">
+          <div class="result-main">
         <div class="result-head">
           <button class="btn btn-back" id="btnBack">← 返回</button>
           <span class="chip chip-demo" id="demoChip" hidden>演示数据</span>
@@ -128,7 +146,10 @@
             <span class="sc-brand">几分？</span>
           </div>
         </div>
+          </div>
+          <!-- /result-main -->
 
+          <div class="result-side">
         <!-- 识别明细 -->
         <div class="panel">
           <div class="panel-head">
@@ -138,15 +159,20 @@
           <ul class="items" id="items"></ul>
           <p class="panel-note">改克数会自动重算分数。</p>
         </div>
+          </div>
+          <!-- /result-side -->
 
-        <div class="row-actions row-sticky">
-          <button class="btn btn-primary" id="btnShare">分享分数卡</button>
-          <button class="btn btn-ghost" id="btnAgain">再拍一张</button>
+          <div class="row-actions row-sticky">
+            <button class="btn btn-primary" id="btnShare">分享分数卡</button>
+            <button class="btn btn-ghost" id="btnAgain">再拍一张</button>
+          </div>
         </div>
       </section>
 
       <!-- ============ 视图三：今日总览 ============ -->
       <section class="view" id="view-today">
+        <div class="today-grid">
+          <div class="today-main">
         <div class="today-head">
           <h1 class="today-title">今日热量</h1>
           <p class="today-date" id="todayDate">—</p>
@@ -163,7 +189,10 @@
           <p class="goal-hint" id="goalHint">还没记录，去拍一张吧</p>
           <button class="btn btn-mini" id="btnSetGoal">设置目标</button>
         </div>
+          </div>
+          <!-- /today-main -->
 
+          <div class="today-side">
         <div class="panel">
           <div class="panel-head">
             <h2>今日记录</h2>
@@ -171,6 +200,8 @@
           </div>
           <ul class="records" id="records"></ul>
           <p class="empty" id="recordsEmpty">今天还没有记录。</p>
+        </div>
+          </div>
         </div>
       </section>
     </main>
@@ -181,6 +212,19 @@
     <div class="overlay-box">
       <div class="spinner"></div>
       <p id="overlayText">AI 正在尝味道…</p>
+    </div>
+  </div>
+
+  <!-- 通用弹层：加菜 / 设目标 / 清空确认 -->
+  <div class="modal" id="modal" hidden>
+    <div class="modal-box" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+      <h3 class="modal-title" id="modalTitle">标题</h3>
+      <p class="modal-text" id="modalText" hidden></p>
+      <input class="modal-input" id="modalInput" type="text" />
+      <div class="modal-actions">
+        <button class="btn btn-ghost btn-mini" id="modalCancel">取消</button>
+        <button class="btn btn-primary btn-mini" id="modalOk">确定</button>
+      </div>
     </div>
   </div>
 
