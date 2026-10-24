@@ -1,0 +1,192 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>几分？· 热量打分器</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Baloo+2:wght@500;600;700;800&display=swap"
+    rel="stylesheet"
+  />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <!-- 背景装饰层 -->
+  <div class="bg-deco" aria-hidden="true">
+    <span class="blob blob-pink"></span>
+    <span class="blob blob-yellow"></span>
+    <span class="blob blob-mint"></span>
+    <span class="dots"></span>
+  </div>
+
+  <div class="app">
+    <!-- 顶栏 -->
+    <header class="topbar">
+      <div class="logo">
+        <span class="logo-mark">几分？</span>
+        <span class="logo-sub">热量打分器</span>
+      </div>
+      <nav class="tabs" id="tabs">
+        <button class="tab is-active" data-view="home">打分</button>
+        <button class="tab" data-view="today">今日</button>
+      </nav>
+    </header>
+
+    <main class="stage">
+      <!-- ============ 视图一：首页 ============ -->
+      <section class="view is-active" id="view-home">
+        <div class="hero">
+          <h1 class="hero-title">
+            今晚这顿饭<br /><span class="hl hl-yellow">几分</span
+            ><span class="hl hl-pink">？</span>
+          </h1>
+          <p class="hero-desc">拍一张菜的图，AI 给热量、营养、趣味打个分。</p>
+        </div>
+
+        <!-- 模式切换 -->
+        <div class="mode-switch" id="modeSwitch" role="tablist" aria-label="识别模式">
+          <button class="mode is-active" data-mode="single" role="tab">
+            <span class="mode-emoji">🍜</span><span>单菜</span>
+          </button>
+          <button class="mode" data-mode="meal" role="tab">
+            <span class="mode-emoji">🍱</span><span>整餐</span>
+          </button>
+          <span class="mode-thumb" aria-hidden="true"></span>
+        </div>
+
+        <!-- 上传区 -->
+        <label class="dropzone" id="dropzone" for="fileInput">
+          <input id="fileInput" type="file" accept="image/*" hidden />
+          <div class="dz-inner">
+            <div class="dz-badge">拍照 / 上传</div>
+            <div class="dz-icon" aria-hidden="true">
+              <svg viewBox="0 0 48 48" width="52" height="52">
+                <rect x="7" y="14" width="34" height="26" rx="7" fill="none" stroke="currentColor" stroke-width="3.4" />
+                <path d="M18 14l3-5h6l3 5" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linejoin="round" />
+                <circle cx="24" cy="27" r="7" fill="none" stroke="currentColor" stroke-width="3.4" />
+              </svg>
+            </div>
+            <p class="dz-title">把图片拖进来，或点击选择</p>
+            <p class="dz-hint" id="dzHint">一张图 = 一道菜</p>
+          </div>
+        </label>
+
+        <div class="row-actions">
+          <button class="btn btn-ghost" id="btnSample">看看示例结果</button>
+        </div>
+
+        <!-- 免责提示 -->
+        <div class="notice" role="note">
+          <span class="notice-ico">!</span>
+          <p>AI 估算结果仅供参考，可能不准，<b>可以手动修正</b>。</p>
+        </div>
+      </section>
+
+      <!-- ============ 视图二：结果页 ============ -->
+      <section class="view" id="view-result">
+        <div class="result-head">
+          <button class="btn btn-back" id="btnBack">← 返回</button>
+          <span class="chip chip-demo" id="demoChip" hidden>演示数据</span>
+        </div>
+
+        <!-- 分数卡（分享目标） -->
+        <div class="score-card" id="scoreCard">
+          <div class="sc-top">
+            <div class="sc-thumb" id="scThumb"></div>
+            <div class="sc-headline">
+              <span class="sc-label">综合得分</span>
+              <div class="sc-total">
+                <span class="sc-num" id="scTotal">0</span><span class="sc-unit">分</span>
+              </div>
+              <div class="sc-level" id="scLevel">—</div>
+            </div>
+          </div>
+
+          <!-- 三维分 -->
+          <div class="bars" id="bars">
+            <div class="bar" data-dim="calorie">
+              <div class="bar-head"><span>热量分</span><b id="valCalorie">0</b></div>
+              <div class="bar-track"><i class="bar-fill"></i></div>
+            </div>
+            <div class="bar" data-dim="nutrition">
+              <div class="bar-head"><span>营养分</span><b id="valNutrition">0</b></div>
+              <div class="bar-track"><i class="bar-fill"></i></div>
+            </div>
+            <div class="bar" data-dim="fun">
+              <div class="bar-head"><span>趣味分</span><b id="valFun">0</b></div>
+              <div class="bar-track"><i class="bar-fill"></i></div>
+            </div>
+          </div>
+
+          <!-- 趣味标签 -->
+          <div class="tags" id="funTags"></div>
+
+          <div class="sc-foot">
+            <span id="scMeta">—</span>
+            <span class="sc-brand">几分？</span>
+          </div>
+        </div>
+
+        <!-- 识别明细 -->
+        <div class="panel">
+          <div class="panel-head">
+            <h2>识别明细</h2>
+            <button class="btn btn-mini" id="btnAddItem">＋ 加一道</button>
+          </div>
+          <ul class="items" id="items"></ul>
+          <p class="panel-note">改克数会自动重算分数。</p>
+        </div>
+
+        <div class="row-actions row-sticky">
+          <button class="btn btn-primary" id="btnShare">分享分数卡</button>
+          <button class="btn btn-ghost" id="btnAgain">再拍一张</button>
+        </div>
+      </section>
+
+      <!-- ============ 视图三：今日总览 ============ -->
+      <section class="view" id="view-today">
+        <div class="today-head">
+          <h1 class="today-title">今日热量</h1>
+          <p class="today-date" id="todayDate">—</p>
+        </div>
+
+        <div class="goal-card">
+          <div class="goal-nums">
+            <span class="goal-now" id="goalNow">0</span>
+            <span class="goal-sep">/</span>
+            <span class="goal-target" id="goalTarget">1800</span>
+            <span class="goal-unit">kcal</span>
+          </div>
+          <div class="goal-track"><i class="goal-fill" id="goalFill"></i></div>
+          <p class="goal-hint" id="goalHint">还没记录，去拍一张吧</p>
+          <button class="btn btn-mini" id="btnSetGoal">设置目标</button>
+        </div>
+
+        <div class="panel">
+          <div class="panel-head">
+            <h2>今日记录</h2>
+            <button class="btn btn-mini btn-danger" id="btnClear">清空</button>
+          </div>
+          <ul class="records" id="records"></ul>
+          <p class="empty" id="recordsEmpty">今天还没有记录。</p>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- 上传/识别中的遮罩 -->
+  <div class="overlay" id="overlay" hidden>
+    <div class="overlay-box">
+      <div class="spinner"></div>
+      <p id="overlayText">AI 正在尝味道…</p>
+    </div>
+  </div>
+
+  <div class="toast" id="toast" hidden></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
